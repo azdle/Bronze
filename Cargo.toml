@@ -1,0 +1,7 @@
+[package]
+name = "bronze"
+version = "0.1.0"
+authors = ["Patrick Barrett <patrick@mkii.org>"]
+
+[dependencies]
+mio = "0.5"
