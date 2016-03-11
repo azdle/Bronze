@@ -2,6 +2,11 @@
 name = "bronze"
 version = "0.1.0"
 authors = ["Patrick Barrett <patrick@mkii.org>"]
+description = "A rust coap server framework. (Early, but functional.)"
+repository = "https://github.com/azdle/bronze"
+readme = "README.md"
+keywords = ["coap"]
+license = "MIT/Apache-2.0"
 
 [dependencies]
 mio = "0.5"
