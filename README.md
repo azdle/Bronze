@@ -9,7 +9,8 @@ aimed at making high performance CoAP servers. It's not currently intended for
 use on especially resource constrained devices, but that is a long-term goal.
 
 Bronze is written using mio for all network requests, this means that it has
-very low overheads
+very low overheads and it should be possible to make it into a very fast and
+efficient system.
 
 Status
 ------
@@ -21,6 +22,9 @@ CoAP packets, but there is not yet any automatic handling of retries or
 multi-packet messages.
 
 There is not yet any implementation of client requests.
+
+No benchmarks have been done to determine if Bronze in it's current state is as
+fast as it could be.
 
 
 Getting Started
