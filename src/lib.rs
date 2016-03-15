@@ -1,3 +1,6 @@
+#![feature(test)]
+
+extern crate test;
 extern crate mio;
 
 mod constants;

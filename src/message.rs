@@ -421,102 +421,121 @@ impl Message {
 }
 
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test::Bencher;
 
-#[test]
-fn test_msg_parse_empty() {
-    let ref_bin = [64,0,0,0];
+    #[test]
+    fn test_msg_parse_empty() {
+        let ref_bin = [64,0,0,0];
 
-    let msg = Message::from_bytes(&ref_bin).unwrap();
+        let msg = Message::from_bytes(&ref_bin).unwrap();
 
-    assert!(msg.version == 1);
-    assert!(msg.mtype == Mtype::Confirmable);
-    assert!(msg.code == Code::Empty);
-    assert!(msg.mid == 0);
-    assert!(msg.token == []);
-    assert!(msg.options == []);
-    assert!(msg.payload == []);
-}
+        assert!(msg.version == 1);
+        assert!(msg.mtype == Mtype::Confirmable);
+        assert!(msg.code == Code::Empty);
+        assert!(msg.mid == 0);
+        assert!(msg.token == []);
+        assert!(msg.options == []);
+        assert!(msg.payload == []);
+    }
 
-#[test]
-fn test_msg_serialize_empty() {
-    let ref_bin = [64,0,0,0];
-    let msg = Message{
-        version: 1,
-        mtype: Mtype::Confirmable,
-        code: Code::Empty,
-        mid: 0,
-        token: vec![],
-        options: vec![],
-        payload: vec![]
-    };
+    #[test]
+    fn test_msg_serialize_empty() {
+        let ref_bin = [64,0,0,0];
+        let msg = Message{
+            version: 1,
+            mtype: Mtype::Confirmable,
+            code: Code::Empty,
+            mid: 0,
+            token: vec![],
+            options: vec![],
+            payload: vec![]
+        };
 
-    let test_bin = msg.to_bytes().unwrap();
+        let test_bin = msg.to_bytes().unwrap();
 
-    assert!(test_bin == ref_bin);
-}
+        assert!(test_bin == ref_bin);
+    }
 
-#[test]
-fn test_msg_parse_empty_con_with_token() {
-    let ref_bin = [66,0,0,0,37,42];
+    #[test]
+    fn test_msg_parse_empty_con_with_token() {
+        let ref_bin = [66,0,0,0,37,42];
 
-    let msg = Message::from_bytes(&ref_bin).unwrap();
+        let msg = Message::from_bytes(&ref_bin).unwrap();
 
-    assert!(msg.version == 1);
-    assert!(msg.mtype == Mtype::Confirmable);
-    assert!(msg.code == Code::Empty);
-    assert!(msg.mid == 0);
-    assert!(msg.token == [37, 42]);
-    assert!(msg.options == []);
-    assert!(msg.payload == []);
-}
+        assert!(msg.version == 1);
+        assert!(msg.mtype == Mtype::Confirmable);
+        assert!(msg.code == Code::Empty);
+        assert!(msg.mid == 0);
+        assert!(msg.token == [37, 42]);
+        assert!(msg.options == []);
+        assert!(msg.payload == []);
+    }
 
-#[test]
-fn test_msg_parse_get_con() {
-    let ref_bin = [0x41,0x01,0x00,0x37,0x99,0xFF,0x01,0x02];
+    #[test]
+    fn test_msg_parse_get_con() {
+        let ref_bin = [0x41,0x01,0x00,0x37,0x99,0xFF,0x01,0x02];
 
-    let msg = Message::from_bytes(&ref_bin).unwrap();
+        let msg = Message::from_bytes(&ref_bin).unwrap();
 
-    assert!(msg.version == 1);
-    assert!(msg.mtype == Mtype::Confirmable);
-    assert!(msg.code == Code::Get);
-    assert!(msg.mid == 0x37);
-    assert!(msg.token == [0x99]);
-    assert!(msg.options == []);
-    assert!(msg.payload == [0x01, 0x02]);
-}
+        assert!(msg.version == 1);
+        assert!(msg.mtype == Mtype::Confirmable);
+        assert!(msg.code == Code::Get);
+        assert!(msg.mid == 0x37);
+        assert!(msg.token == [0x99]);
+        assert!(msg.options == []);
+        assert!(msg.payload == [0x01, 0x02]);
+    }
 
-#[test]
-fn test_msg_parse_get_con_with_opts() {
-    let ref_bin = [0x40,0x02,0x00,0x37,0xb2,0x31,0x61,0x04,0x74,0x65,
-                   0x6d,0x70,0x4d,0x1b,0x61,0x33,0x32,0x63,0x38,0x35,
-                   0x62,0x61,0x39,0x64,0x64,0x61,0x34,0x35,0x38,0x32,
-                   0x33,0x62,0x65,0x34,0x31,0x36,0x32,0x34,0x36,0x63,
-                   0x66,0x38,0x62,0x34,0x33,0x33,0x62,0x61,0x61,0x30,
-                   0x36,0x38,0x64,0x37,0xFF,0x39,0x39];
+    #[test]
+    fn test_msg_parse_get_con_with_opts() {
+        let ref_bin = [0x40,0x02,0x00,0x37,0xb2,0x31,0x61,0x04,0x74,0x65,
+                       0x6d,0x70,0x4d,0x1b,0x61,0x33,0x32,0x63,0x38,0x35,
+                       0x62,0x61,0x39,0x64,0x64,0x61,0x34,0x35,0x38,0x32,
+                       0x33,0x62,0x65,0x34,0x31,0x36,0x32,0x34,0x36,0x63,
+                       0x66,0x38,0x62,0x34,0x33,0x33,0x62,0x61,0x61,0x30,
+                       0x36,0x38,0x64,0x37,0xFF,0x39,0x39];
 
-    let msg = Message::from_bytes(&ref_bin).unwrap();
+        let msg = Message::from_bytes(&ref_bin).unwrap();
 
-    assert!(msg.version == 1);
-    assert!(msg.mtype == Mtype::Confirmable);
-    assert!(msg.code == Code::Post);
-    assert!(msg.mid == 0x0037);
-    assert!(msg.token == []);
-    assert!(msg.options == [
-        option::Option{
-            number: option::Number::UriPath,
-            value: vec![0x31,0x61]
-        },
-        option::Option{
-            number: option::Number::UriPath,
-            value: vec![0x74,0x65,0x6d,0x70]
-        },
-        option::Option{
-            number: option::Number::UriQuery,
-            value: vec![0x61,0x33,0x32,0x63,0x38,0x35,0x62,0x61,0x39,0x64,
-                        0x64,0x61,0x34,0x35,0x38,0x32,0x33,0x62,0x65,0x34,
-                        0x31,0x36,0x32,0x34,0x36,0x63,0x66,0x38,0x62,0x34,
-                        0x33,0x33,0x62,0x61,0x61,0x30,0x36,0x38,0x64,0x37]
-        },
-    ]);
-    assert!(msg.payload == [0x39, 0x39]);
+        assert!(msg.version == 1);
+        assert!(msg.mtype == Mtype::Confirmable);
+        assert!(msg.code == Code::Post);
+        assert!(msg.mid == 0x0037);
+        assert!(msg.token == []);
+        assert!(msg.options == [
+            option::Option{
+                number: option::Number::UriPath,
+                value: vec![0x31,0x61]
+            },
+            option::Option{
+                number: option::Number::UriPath,
+                value: vec![0x74,0x65,0x6d,0x70]
+            },
+            option::Option{
+                number: option::Number::UriQuery,
+                value: vec![0x61,0x33,0x32,0x63,0x38,0x35,0x62,0x61,0x39,0x64,
+                            0x64,0x61,0x34,0x35,0x38,0x32,0x33,0x62,0x65,0x34,
+                            0x31,0x36,0x32,0x34,0x36,0x63,0x66,0x38,0x62,0x34,
+                            0x33,0x33,0x62,0x61,0x61,0x30,0x36,0x38,0x64,0x37]
+            },
+        ]);
+        assert!(msg.payload == [0x39, 0x39]);
+    }
+
+
+    #[bench]
+    fn message_decode(b: &mut Bencher) {
+        let ref_bin = [0x40,0x02,0x00,0x37,0xb2,0x31,0x61,0x04,0x74,0x65,
+                       0x6d,0x70,0x4d,0x1b,0x61,0x33,0x32,0x63,0x38,0x35,
+                       0x62,0x61,0x39,0x64,0x64,0x61,0x34,0x35,0x38,0x32,
+                       0x33,0x62,0x65,0x34,0x31,0x36,0x32,0x34,0x36,0x63,
+                       0x66,0x38,0x62,0x34,0x33,0x33,0x62,0x61,0x61,0x30,
+                       0x36,0x38,0x64,0x37,0xFF,0x39,0x39];
+        b.iter(|| {
+            Message::from_bytes(&ref_bin).unwrap();
+        });
+    }
 }
