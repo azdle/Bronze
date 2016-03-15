@@ -11,6 +11,13 @@ pub struct Message {
     pub payload: Vec<u8>,
 }
 
+#[derive(PartialEq, Debug)]
+pub enum Error {
+    MessageFormat,
+    InvalidToken,
+    InvalidOptionNumber
+}
+
 #[derive(PartialEq, Eq, Debug)]
 #[repr(u8)]
 pub enum Mtype {
@@ -241,11 +248,11 @@ pub mod option {
 
 
 impl Message {
-    pub fn from_bin(pkt: &[u8]) -> Result<Message, &str> {
+    pub fn from_bytes(pkt: &[u8]) -> Result<Message, Error> {
         let mut i: usize;
 
         if pkt.len() < 4 {
-            return Err("message format error");
+            return Err(Error::MessageFormat);
         }
 
         let version = pkt[0] >> 6;
@@ -255,7 +262,7 @@ impl Message {
         let mid = ((pkt[2] as u16) << 8) | pkt[3] as u16;
 
         if pkt.len() < 4 + token_length as usize {
-            return Err("message format error");
+            return Err(Error::MessageFormat);
         }
 
         let mut token = vec![];
@@ -296,13 +303,13 @@ impl Message {
             option_number_offset = option_number;
 
             if length >= 65000 {
-                return Err("message format error");
+                return Err(Error::MessageFormat);
             }
 
             if pkt.len() >= i+(length as usize) {
                 options.push(option::from_u16(option_number,pkt[i..i+(length as usize)].to_vec()));
             } else {
-                return Err("message format error");
+                return Err(Error::MessageFormat);
             }
 
             i += length as usize;
@@ -325,9 +332,13 @@ impl Message {
         })
     }
 
-    pub fn as_bin(&self) -> Result<Vec<u8>, &str> {
+}
+
+
+impl Message {
+    pub fn to_bytes(&self) -> Result<Vec<u8>, Error> {
         if self.token.len() > 8 {
-            return Err("message format error");
+            return Err(Error::MessageFormat);
         }
 
         // estimate packet size
@@ -337,7 +348,7 @@ impl Message {
             est_pkt_size += 2 + option.value.len();
 
             if option.number.as_u16() >= 65000 {
-                return Err("message format error");
+                return Err(Error::MessageFormat);
             }
         }
 

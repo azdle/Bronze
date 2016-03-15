@@ -27,7 +27,7 @@ impl Endpoint {
 }
 
 pub trait RequestHandler {
-    fn handle_request(&self, SocketAddr, &[u8]) -> Option<Vec<u8>>;
+    fn handle_request(&self, &SocketAddr, &Message) -> Option<Vec<u8>>;
 }
 
 struct ServerHandler<H>{
@@ -56,11 +56,16 @@ impl<H: RequestHandler> Handler for ServerHandler<H> {
 
                 let pkt = &buf[..len];
 
-                match (self.handler).handle_request(addr, pkt) {
-                    Some(resp) => {
-                        self.sock.send_to(&resp, &addr).unwrap_or(None); // UDP is best-effort, right?
+                match Message::from_bytes(pkt) {
+                    Ok(msg) => {
+                        match (self.handler).handle_request(&addr, &msg) {
+                            Some(resp) => {
+                                self.sock.send_to(&resp, &addr).unwrap_or(None); // UDP is best-effort, right?
+                            },
+                            None => ()
+                        }
                     },
-                    None => ()
+                    Err(_) => ()
                 }
             }
             _ => panic!("unexpected token"),
