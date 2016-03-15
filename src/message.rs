@@ -46,11 +46,6 @@ impl Mtype {
     }
 }
 
-
-macro_rules! code {
-    ($c:expr, $d:expr) => ((($c & 0x07) << 5) | ($d & 0x1F))
-}
-
 #[derive(PartialEq, Eq, Debug)]
 pub enum Code {
     Empty,
@@ -117,34 +112,39 @@ impl Code {
 
     pub fn as_u8(&self) -> u8 {
         match *self{
-            Code::Empty => code!(0,00),
-            Code::Get => code!(0,01),
-            Code::Post => code!(0,02),
-            Code::Put => code!(0,03),
-            Code::Delete => code!(0,04),
-            Code::Created => code!(2,01),
-            Code::Deleted => code!(2,02),
-            Code::Valid => code!(2,03),
-            Code::Changed => code!(2,04),
-            Code::Content => code!(2,05),
-            Code::BadRequest => code!(4,00),
-            Code::Unauthorized => code!(4,01),
-            Code::BadOption => code!(4,02),
-            Code::Forbidden => code!(4,03),
-            Code::NotFound => code!(4,04),
-            Code::MethodNotAllowed => code!(4,05),
-            Code::NotAcceptable => code!(4,06),
-            Code::PreconditionFailed => code!(4,12),
-            Code::RequestEntityTooLarge => code!(4,13),
-            Code::UnsupportedContentFormat => code!(4,15),
-            Code::InternalServerError => code!(5,00),
-            Code::NotImplemented => code!(5,01),
-            Code::BadGateway => code!(5,02),
-            Code::ServiceUnavailable => code!(5,03),
-            Code::GatewayTimeout => code!(5,04),
-            Code::ProxyingNotSupported => code!(5,05),
+            Code::Empty => Self::build(0,00),
+            Code::Get => Self::build(0,01),
+            Code::Post => Self::build(0,02),
+            Code::Put => Self::build(0,03),
+            Code::Delete => Self::build(0,04),
+            Code::Created => Self::build(2,01),
+            Code::Deleted => Self::build(2,02),
+            Code::Valid => Self::build(2,03),
+            Code::Changed => Self::build(2,04),
+            Code::Content => Self::build(2,05),
+            Code::BadRequest => Self::build(4,00),
+            Code::Unauthorized => Self::build(4,01),
+            Code::BadOption => Self::build(4,02),
+            Code::Forbidden => Self::build(4,03),
+            Code::NotFound => Self::build(4,04),
+            Code::MethodNotAllowed => Self::build(4,05),
+            Code::NotAcceptable => Self::build(4,06),
+            Code::PreconditionFailed => Self::build(4,12),
+            Code::RequestEntityTooLarge => Self::build(4,13),
+            Code::UnsupportedContentFormat => Self::build(4,15),
+            Code::InternalServerError => Self::build(5,00),
+            Code::NotImplemented => Self::build(5,01),
+            Code::BadGateway => Self::build(5,02),
+            Code::ServiceUnavailable => Self::build(5,03),
+            Code::GatewayTimeout => Self::build(5,04),
+            Code::ProxyingNotSupported => Self::build(5,05),
             Code::Unknown(code) => code
         }
+    }
+
+    #[inline(always)]
+    fn build(class: u8, detail: u8) -> u8 {
+        ((class & 0x07) << 5) | (detail & 0x1F)
     }
 }
 
