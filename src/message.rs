@@ -146,6 +146,14 @@ impl Code {
     fn build(class: u8, detail: u8) -> u8 {
         ((class & 0x07) << 5) | (detail & 0x1F)
     }
+
+    fn class(&self) -> u8 {
+        self.as_u8() >> 5
+    }
+
+    fn detail(&self) -> u8 {
+        self.as_u8() & 0x1F
+    }
 }
 
 pub mod option {
@@ -427,6 +435,8 @@ fn test_msg_parse_empty() {
     assert!(msg.version == 1);
     assert!(msg.mtype == Mtype::Confirmable);
     assert!(msg.code == Code::Empty);
+    assert!(msg.code.class() == 0);
+    assert!(msg.code.detail() == 0);
     assert!(msg.mid == 0);
     assert!(msg.token == []);
     assert!(msg.options == []);
@@ -460,6 +470,8 @@ fn test_msg_parse_empty_con_with_token() {
     assert!(msg.version == 1);
     assert!(msg.mtype == Mtype::Confirmable);
     assert!(msg.code == Code::Empty);
+    assert!(msg.code.class() == 0);
+    assert!(msg.code.detail() == 0);
     assert!(msg.mid == 0);
     assert!(msg.token == [37, 42]);
     assert!(msg.options == []);
@@ -475,6 +487,8 @@ fn test_msg_parse_get_con() {
     assert!(msg.version == 1);
     assert!(msg.mtype == Mtype::Confirmable);
     assert!(msg.code == Code::Get);
+    assert!(msg.code.class() == 0);
+    assert!(msg.code.detail() == 1);
     assert!(msg.mid == 0x37);
     assert!(msg.token == [0x99]);
     assert!(msg.options == []);
@@ -495,6 +509,8 @@ fn test_msg_parse_get_con_with_opts() {
     assert!(msg.version == 1);
     assert!(msg.mtype == Mtype::Confirmable);
     assert!(msg.code == Code::Post);
+    assert!(msg.code.class() == 0);
+    assert!(msg.code.detail() == 2);
     assert!(msg.mid == 0x0037);
     assert!(msg.token == []);
     assert!(msg.options == [
