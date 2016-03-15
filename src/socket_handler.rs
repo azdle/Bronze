@@ -6,7 +6,6 @@ use endpoint::RequestHandler;
 
 use mio::*;
 use mio::udp::{UdpSocket};
-use std::net::SocketAddr;
 
 pub struct SocketHandler<H>{
     sock: UdpSocket,
