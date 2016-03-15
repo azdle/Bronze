@@ -229,8 +229,28 @@ pub mod option {
             }
         }
 
-        pub fn is_cache_key(&self) -> bool {
+        pub fn is_critical(&self) -> bool {
+            self.as_u16() & 0x01 != 0
+        }
+
+        pub fn is_elective(&self) -> bool {
             self.as_u16() & 0x01 == 0
+        }
+
+        pub fn is_unsafe_to_forward(&self) -> bool {
+            self.as_u16() & 0x02 != 0
+        }
+
+        pub fn is_safe_to_forward(&self) -> bool {
+            self.as_u16() & 0x02 == 0
+        }
+
+        pub fn is_no_cache_key(&self) -> bool {
+            self.as_u16() & 0x1e == 0x1c
+        }
+
+        pub fn is_cache_key(&self) -> bool {
+            self.as_u16() & 0x1e != 0x1c
         }
     }
 
