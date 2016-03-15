@@ -1,5 +1,3 @@
-
-
 #[derive(PartialEq, Eq, Debug)]
 pub struct Message {
     pub version: u8,
