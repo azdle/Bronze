@@ -8,6 +8,11 @@ use mio::*;
 use mio::udp::{UdpSocket};
 use std::net::SocketAddr;
 
+
+pub trait RequestHandler {
+    fn handle_request(&self, &SocketAddr, &Message) -> Option<Vec<u8>>;
+}
+
 pub struct Endpoint {
     local_addr: SocketAddr,
 }
@@ -24,8 +29,4 @@ impl Endpoint {
         event_loop.register(&server, SERVER, EventSet::readable(), PollOpt::edge()).unwrap();
         event_loop.run(&mut SocketHandler::new(server, handler)).unwrap();
     }
-}
-
-pub trait RequestHandler {
-    fn handle_request(&self, &SocketAddr, &Message) -> Option<Vec<u8>>;
 }
