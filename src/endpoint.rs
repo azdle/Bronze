@@ -22,7 +22,7 @@ impl Endpoint {
 
         let mut event_loop = EventLoop::new().unwrap();
         event_loop.register(&server, SERVER, EventSet::readable(), PollOpt::edge()).unwrap();
-        event_loop.run(&mut ServerHandler::new(server, handler)).unwrap();
+        event_loop.run(&mut SocketHandler::new(server, handler)).unwrap();
     }
 }
 
@@ -30,25 +30,25 @@ pub trait RequestHandler {
     fn handle_request(&self, &SocketAddr, &Message) -> Option<Vec<u8>>;
 }
 
-struct ServerHandler<H>{
+struct SocketHandler<H>{
     sock: UdpSocket,
     handler: H
 }
 
-impl<H: RequestHandler>  ServerHandler<H> {
-    fn new(sock: UdpSocket, handler: H) -> ServerHandler<H> {
-        ServerHandler{
+impl<H: RequestHandler>  SocketHandler<H> {
+    fn new(sock: UdpSocket, handler: H) -> SocketHandler<H> {
+        SocketHandler{
             sock: sock,
             handler: handler
         }
     }
 }
 
-impl<H: RequestHandler> Handler for ServerHandler<H> {
+impl<H: RequestHandler> Handler for SocketHandler<H> {
     type Timeout = ();
     type Message = ();
 
-    fn ready(&mut self, _event_loop: &mut EventLoop<ServerHandler<H>>, token: Token, _: EventSet) {
+    fn ready(&mut self, _event_loop: &mut EventLoop<SocketHandler<H>>, token: Token, _: EventSet) {
         match token {
             SERVER => {
                 let mut buf: [u8; 2048] = [0; 2048];
