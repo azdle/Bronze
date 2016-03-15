@@ -426,7 +426,7 @@ impl Message {
 fn test_msg_parse_empty() {
     let ref_bin = [64,0,0,0];
 
-    let msg = Message::from_bin(&ref_bin).unwrap();
+    let msg = Message::from_bytes(&ref_bin).unwrap();
 
     assert!(msg.version == 1);
     assert!(msg.mtype == Mtype::Confirmable);
@@ -450,7 +450,7 @@ fn test_msg_serialize_empty() {
         payload: vec![]
     };
 
-    let test_bin = msg.as_bin().unwrap();
+    let test_bin = msg.to_bytes().unwrap();
 
     assert!(test_bin == ref_bin);
 }
@@ -459,7 +459,7 @@ fn test_msg_serialize_empty() {
 fn test_msg_parse_empty_con_with_token() {
     let ref_bin = [66,0,0,0,37,42];
 
-    let msg = Message::from_bin(&ref_bin).unwrap();
+    let msg = Message::from_bytes(&ref_bin).unwrap();
 
     assert!(msg.version == 1);
     assert!(msg.mtype == Mtype::Confirmable);
@@ -474,7 +474,7 @@ fn test_msg_parse_empty_con_with_token() {
 fn test_msg_parse_get_con() {
     let ref_bin = [0x41,0x01,0x00,0x37,0x99,0xFF,0x01,0x02];
 
-    let msg = Message::from_bin(&ref_bin).unwrap();
+    let msg = Message::from_bytes(&ref_bin).unwrap();
 
     assert!(msg.version == 1);
     assert!(msg.mtype == Mtype::Confirmable);
@@ -494,7 +494,7 @@ fn test_msg_parse_get_con_with_opts() {
                    0x66,0x38,0x62,0x34,0x33,0x33,0x62,0x61,0x61,0x30,
                    0x36,0x38,0x64,0x37,0xFF,0x39,0x39];
 
-    let msg = Message::from_bin(&ref_bin).unwrap();
+    let msg = Message::from_bytes(&ref_bin).unwrap();
 
     assert!(msg.version == 1);
     assert!(msg.mtype == Mtype::Confirmable);
