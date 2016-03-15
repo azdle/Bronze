@@ -1,5 +1,3 @@
-extern crate mio;
-
 use constants::*;
 use message::Message;
 use endpoint::RequestHandler;
