@@ -17,18 +17,7 @@ impl Endpoint {
         Endpoint{local_addr: local_addr}
     }
 
-/*
-    pub fn run_raw(self, handler: fn(&[u8], SocketAddr) -> Option<Vec<u8>>) {
-        let server = UdpSocket::bound(&self.local_addr).unwrap();
-
-        let mut event_loop = EventLoop::new().unwrap();
-        event_loop.register(&server, SERVER, EventSet::readable(), PollOpt::edge()).unwrap();
-        event_loop.run(&mut ServerHandler::new(server, handler)).unwrap();
-    }
-*/
-
     pub fn run<H: RequestHandler>(self, handler: H) {
-        //Self::run_raw(self, (handler).handle_request);
         let server = UdpSocket::bound(&self.local_addr).unwrap();
 
         let mut event_loop = EventLoop::new().unwrap();
