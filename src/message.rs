@@ -350,10 +350,6 @@ impl Message {
         })
     }
 
-}
-
-
-impl Message {
     pub fn to_bytes(&self) -> Result<Vec<u8>, Error> {
         if self.token.len() > 8 {
             return Err(Error::MessageFormat);
