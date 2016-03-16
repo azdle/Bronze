@@ -180,6 +180,7 @@ pub mod option {
     }
 
     impl Option {
+
         pub fn build_header(&self, last_option_number: &mut u16) -> Vec<u8> {
             let mut header = vec![0u8];
 
@@ -215,19 +216,19 @@ pub mod option {
                 Option::UriHost(ref s) => s.len(),
                 Option::ETag(ref v) => v.len(),
                 Option::IfNoneMatch => 0,
-                Option::Observe(n) => Self::integer_as_bytes(n as u64).len(),
-                Option::UriPort(n) => Self::integer_as_bytes(n as u64).len(),
+                Option::Observe(n) => Self::u32_as_bytes(&n).len(),
+                Option::UriPort(n) => Self::u16_as_bytes(&n).len(),
                 Option::LocationPath(ref s) => s.len(),
                 Option::UriPath(ref s) => s.len(),
-                Option::ContentFormat(n) => Self::integer_as_bytes(n as u64).len(),
-                Option::MaxAge(n) => Self::integer_as_bytes(n as u64).len(),
+                Option::ContentFormat(n) => Self::u16_as_bytes(&n).len(),
+                Option::MaxAge(n) => Self::u32_as_bytes(&n).len(),
                 Option::UriQuery(ref s) => s.len(),
-                Option::Accept(n) => Self::integer_as_bytes(n as u64).len(),
+                Option::Accept(n) => Self::u16_as_bytes(&n).len(),
                 Option::LocationQuery(ref s) => s.len(),
                 Option::ProxyUri(ref s) => s.len(),
                 Option::ProxyScheme(ref s) => s.len(),
-                Option::Size1(n) => Self::integer_as_bytes(n as u64).len(),
-                Option::NoResponse(n) => Self::integer_as_bytes(n as u64).len(),
+                Option::Size1(n) => Self::u32_as_bytes(&n).len(),
+                Option::NoResponse(n) => Self::u8_as_bytes(&n).len(),
                 Option::Unknown((_, ref v)) => v.len()
             }
         }
@@ -240,31 +241,75 @@ pub mod option {
                 Option::UriHost(ref s) => s.as_bytes(),
                 Option::ETag(ref v) => v,
                 Option::IfNoneMatch => &[],
-                Option::Observe(n) => unsafe{mem::transmute(u32::to_be(n))},//&Self::integer_as_bytes(n as u64),
-                Option::UriPort(n) => unsafe{mem::transmute(u16::to_be(n))},
+                Option::Observe(ref n) => &Self::u32_as_bytes(n),
+                Option::UriPort(ref n) => &Self::u16_as_bytes(n),
                 Option::LocationPath(ref s) => s.as_bytes(),
                 Option::UriPath(ref s) => s.as_bytes(),
-                Option::ContentFormat(n) => &Self::integer_as_bytes(n as u64),
-                Option::MaxAge(n) => &Self::integer_as_bytes(n as u64),
+                Option::ContentFormat(ref n) => &Self::u16_as_bytes(n),
+                Option::MaxAge(ref n) => &Self::u32_as_bytes(n),
                 Option::UriQuery(ref s) => s.as_bytes(),
-                Option::Accept(n) => &Self::integer_as_bytes(n as u64),
+                Option::Accept(ref n) => &Self::u16_as_bytes(n),
                 Option::LocationQuery(ref s) => s.as_bytes(),
                 Option::ProxyUri(ref s) => s.as_bytes(),
                 Option::ProxyScheme(ref s) => s.as_bytes(),
-                Option::Size1(n) => &Self::integer_as_bytes(n as u64),
-                Option::NoResponse(n) => &Self::integer_as_bytes(n as u64),
+                Option::Size1(ref n) => &Self::u32_as_bytes(n),
+                Option::NoResponse(ref n) => &Self::u8_as_bytes(n),
                 Option::Unknown((_, ref v)) => v
             }
         }
 
-        fn integer_as_bytes(mut n: u64) -> Vec<u8> {
-            let mut bytes = vec![];
-            while n > 0 {
-                bytes.push((n & 0xFF) as u8);
-                n = n >> 8;
+/*
+        fn integer_as_bytes<'a, T: Zero + PartialEq + BitAnd + Shr<u8>>(mut n: T) -> Vec<<T as Shr<u8>>::Output> {//&'a [u8] {
+            let length_needed = 0;
+            let bytes = vec![];
+            let m: <T as Shr<u8>>::Output = T::zero();
+            while n != T::zero() {
+                bytes.push((n & 0xFF));
+                n = T::shr(n, 8);
             }
 
             bytes
+        }
+*/
+
+        fn u64_as_bytes<'a>(n: &'a u64) -> &'a [u8] {
+            use std::mem;
+
+            let mut i = 0;
+            let bytes: &[u8; 8] = unsafe{mem::transmute((n as *const u64) as *const u8)};
+            while bytes[i] == 0 {i += 1};
+
+            &bytes[i..]
+        }
+
+        fn u32_as_bytes<'a>(n: &'a u32) -> &'a [u8] {
+            use std::mem;
+
+            let mut i = 0;
+            let bytes: &[u8; 4] = unsafe{mem::transmute((n as *const u32) as *const u8)};
+            while bytes[i] == 0 {i += 1};
+
+            &bytes[i..]
+        }
+
+        fn u16_as_bytes<'a>(n: &'a u16) -> &'a [u8] {
+            use std::mem;
+
+            let mut i = 0;
+            let bytes: &[u8 ;2] = unsafe{mem::transmute((n as *const u16) as *const u8)};
+            while bytes[i] == 0 {i += 1};
+
+            &bytes[i..]
+        }
+
+        fn u8_as_bytes<'a>(n: &'a u8) -> &'a [u8] {
+            use std::mem;
+
+            let mut i = 0;
+            let bytes: &[u8; 1] = unsafe{mem::transmute((n as *const u8) as *const u8)};
+            while bytes[i] == 0 {i += 1};
+
+            &bytes[i..]
         }
 
         pub fn from_raw(number: u16, value: &[u8]) -> Option {
