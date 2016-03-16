@@ -232,26 +232,28 @@ pub mod option {
             }
         }
 
-        pub fn value_as_bytes(&self) -> Vec<u8> {
+        pub fn value_as_bytes(&self) -> &[u8] {
+            use std::mem;
+
             match *self {
-                Option::IfMatch(ref v) => v.clone(),
-                Option::UriHost(ref s) => s.clone().into_bytes(),
-                Option::ETag(ref v) => v.clone(),
-                Option::IfNoneMatch => vec![],
-                Option::Observe(n) => Self::integer_as_bytes(n as u64),
-                Option::UriPort(n) => Self::integer_as_bytes(n as u64),
-                Option::LocationPath(ref s) => s.clone().into_bytes(),
-                Option::UriPath(ref s) => s.clone().into_bytes(),
-                Option::ContentFormat(n) => Self::integer_as_bytes(n as u64),
-                Option::MaxAge(n) => Self::integer_as_bytes(n as u64),
-                Option::UriQuery(ref s) => s.clone().into_bytes(),
-                Option::Accept(n) => Self::integer_as_bytes(n as u64),
-                Option::LocationQuery(ref s) => s.clone().into_bytes(),
-                Option::ProxyUri(ref s) => s.clone().into_bytes(),
-                Option::ProxyScheme(ref s) => s.clone().into_bytes(),
-                Option::Size1(n) => Self::integer_as_bytes(n as u64),
-                Option::NoResponse(n) => Self::integer_as_bytes(n as u64),
-                Option::Unknown((_, ref v)) => v.clone()
+                Option::IfMatch(ref v) => v,
+                Option::UriHost(ref s) => s.as_bytes(),
+                Option::ETag(ref v) => v,
+                Option::IfNoneMatch => &[],
+                Option::Observe(n) => unsafe{mem::transmute(u32::to_be(n))},//&Self::integer_as_bytes(n as u64),
+                Option::UriPort(n) => unsafe{mem::transmute(u16::to_be(n))},
+                Option::LocationPath(ref s) => s.as_bytes(),
+                Option::UriPath(ref s) => s.as_bytes(),
+                Option::ContentFormat(n) => &Self::integer_as_bytes(n as u64),
+                Option::MaxAge(n) => &Self::integer_as_bytes(n as u64),
+                Option::UriQuery(ref s) => s.as_bytes(),
+                Option::Accept(n) => &Self::integer_as_bytes(n as u64),
+                Option::LocationQuery(ref s) => s.as_bytes(),
+                Option::ProxyUri(ref s) => s.as_bytes(),
+                Option::ProxyScheme(ref s) => s.as_bytes(),
+                Option::Size1(n) => &Self::integer_as_bytes(n as u64),
+                Option::NoResponse(n) => &Self::integer_as_bytes(n as u64),
+                Option::Unknown((_, ref v)) => v
             }
         }
 
@@ -562,13 +564,13 @@ impl Message {
         let mut last_option_number = 0;
 
         for option in &self.options {
-            pkt.append(&mut option.build_header(&mut last_option_number));
-            pkt.append(&mut option.value_as_bytes());
+            pkt.extend(option.build_header(&mut last_option_number));
+            pkt.extend(option.value_as_bytes());
         }
 
         if self.payload.len() > 0 {
             pkt.push(0xFF);
-            pkt.append(&mut self.payload.clone());
+            pkt.extend(&self.payload);
         }
 
         Ok(pkt)
