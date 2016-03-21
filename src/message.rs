@@ -233,26 +233,26 @@ pub mod option {
             }
         }
 
-        pub fn value_as_bytes(&self) -> &[u8] {
+        pub fn value_to_bytes(&self) -> Vec<u8> {
             match *self {
-                Option::IfMatch(ref v) => v,
-                Option::UriHost(ref s) => s.as_bytes(),
-                Option::ETag(ref v) => v,
-                Option::IfNoneMatch => &[],
-                Option::Observe(ref n) => &Self::u32_as_bytes(n),
-                Option::UriPort(ref n) => &Self::u16_as_bytes(n),
-                Option::LocationPath(ref s) => s.as_bytes(),
-                Option::UriPath(ref s) => s.as_bytes(),
-                Option::ContentFormat(ref n) => &Self::u16_as_bytes(n),
-                Option::MaxAge(ref n) => &Self::u32_as_bytes(n),
-                Option::UriQuery(ref s) => s.as_bytes(),
-                Option::Accept(ref n) => &Self::u16_as_bytes(n),
-                Option::LocationQuery(ref s) => s.as_bytes(),
-                Option::ProxyUri(ref s) => s.as_bytes(),
-                Option::ProxyScheme(ref s) => s.as_bytes(),
-                Option::Size1(ref n) => &Self::u32_as_bytes(n),
-                Option::NoResponse(ref n) => &Self::u8_as_bytes(n),
-                Option::Unknown((_, ref v)) => v
+                Option::IfMatch(ref v) => v.to_vec(),
+                Option::UriHost(ref s) => s.as_bytes().to_vec(),
+                Option::ETag(ref v) => v.to_vec(),
+                Option::IfNoneMatch => Vec::with_capacity(0),
+                Option::Observe(ref n) => Self::integer_to_bytes(*n as u64),
+                Option::UriPort(ref n) => Self::integer_to_bytes(*n as u64),
+                Option::LocationPath(ref s) => s.as_bytes().to_vec(),
+                Option::UriPath(ref s) => s.as_bytes().to_vec(),
+                Option::ContentFormat(ref n) => Self::integer_to_bytes(*n as u64),
+                Option::MaxAge(ref n) => Self::integer_to_bytes(*n as u64),
+                Option::UriQuery(ref s) => s.as_bytes().to_vec(),
+                Option::Accept(ref n) => Self::integer_to_bytes(*n as u64),
+                Option::LocationQuery(ref s) => s.as_bytes().to_vec(),
+                Option::ProxyUri(ref s) => s.as_bytes().to_vec(),
+                Option::ProxyScheme(ref s) => s.as_bytes().to_vec(),
+                Option::Size1(ref n) => Self::integer_to_bytes(*n as u64),
+                Option::NoResponse(ref n) => Self::integer_to_bytes(*n as u64),
+                Option::Unknown((_, ref v)) => v.to_vec()
             }
         }
 
@@ -270,14 +270,16 @@ pub mod option {
         }
 */
 
-        fn u64_as_bytes<'a>(n: &'a u64) -> &'a [u8] {
-            use std::mem;
-
+        fn integer_to_bytes(mut n: u64) -> Vec<u8> {
             let mut i = 0;
-            let bytes: &[u8; 8] = unsafe{mem::transmute((n as *const u64) as *const u8)};
-            while bytes[i] == 0 {i += 1};
+            let mut bytes = vec![];
+            while n != 0 {
+                bytes.push(n as u8);
+                n = n >> 8;
+            }
 
-            &bytes[i..]
+            bytes.reverse();
+            bytes
         }
 
         fn u32_as_bytes<'a>(n: &'a u32) -> &'a [u8] {
@@ -608,7 +610,7 @@ impl Message {
 
         for option in &self.options {
             pkt.extend(option.build_header(&mut last_option_number));
-            pkt.extend(option.value_as_bytes());
+            pkt.extend(option.value_to_bytes());
         }
 
         if self.payload.len() > 0 {
