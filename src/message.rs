@@ -271,7 +271,6 @@ pub mod option {
 */
 
         fn integer_to_bytes(mut n: u64) -> Vec<u8> {
-            let mut i = 0;
             let mut bytes = vec![];
             while n != 0 {
                 bytes.push(n as u8);
@@ -351,6 +350,10 @@ pub mod option {
         }
 
         pub fn should_be_string(value: &[u8], min: u16, max: u16) -> value::Value {
+            if value.len() < min as usize || value.len() > max as usize {
+                return value::Value::Opaque(value.to_vec())
+            }
+
             match String::from_utf8(value.to_vec()) {
                 Ok(s) => value::Value::String(s),
                 Err(_) => value::Value::Opaque(value.to_vec())
@@ -370,7 +373,7 @@ pub mod option {
         }
 
 
-        pub fn should_be_opaque(value: &[u8], min: u16, max: u16) -> value::Value {
+        pub fn should_be_opaque(value: &[u8], _min: u16, _max: u16) -> value::Value {
             return value::Value::Opaque(value.to_vec());
         }
 
@@ -423,8 +426,6 @@ pub mod option {
     }
 
     pub mod value {
-        use message::Error;
-
         pub enum Value {
             Empty,
             Opaque(Vec<u8>),
@@ -434,8 +435,6 @@ pub mod option {
     }
 
     pub mod format {
-        use message::Error;
-
         pub enum Format {
             Empty,
             Opaque(u16,u16),
