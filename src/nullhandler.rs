@@ -1,12 +1,12 @@
 use message::*;
-use endpoint::RequestHandler;
+use endpoint::MsgHandler;
 
 use std::net::SocketAddr;
 
-pub struct NullServer;
+pub struct NullHandler;
 
-impl RequestHandler for NullServer {
-    fn handle_request(&self, _addr: &SocketAddr, request: &Message) -> Option<Vec<u8>> {
+impl MsgHandler for NullHandler {
+    fn handle_msg(&self, _addr: &SocketAddr, request: &Message) -> Option<Vec<u8>> {
         println!("{:?}", request);
         // todo: would it be better to use an ack w/ error code?
         match request.mtype {

@@ -5,4 +5,4 @@ mod socket_handler;
 
 pub mod message;
 pub mod endpoint;
-pub mod nullserver;
+pub mod nullhandler;

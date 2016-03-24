@@ -1,6 +1,6 @@
 use constants::*;
 use message::Message;
-use endpoint::RequestHandler;
+use endpoint::MsgHandler;
 
 use mio::*;
 use mio::udp::{UdpSocket};
@@ -10,7 +10,7 @@ pub struct SocketHandler<H>{
     handler: H
 }
 
-impl<H: RequestHandler>  SocketHandler<H> {
+impl<H: MsgHandler>  SocketHandler<H> {
     pub fn new(sock: UdpSocket, handler: H) -> SocketHandler<H> {
         SocketHandler{
             sock: sock,
@@ -19,7 +19,7 @@ impl<H: RequestHandler>  SocketHandler<H> {
     }
 }
 
-impl<H: RequestHandler> Handler for SocketHandler<H> {
+impl<H: MsgHandler> Handler for SocketHandler<H> {
     type Timeout = ();
     type Message = ();
 
@@ -33,7 +33,7 @@ impl<H: RequestHandler> Handler for SocketHandler<H> {
 
                 match Message::from_bytes(pkt) {
                     Ok(msg) => {
-                        match (self.handler).handle_request(&addr, &msg) {
+                        match (self.handler).handle_msg(&addr, &msg) {
                             Some(resp) => {
                                 self.sock.send_to(&resp, &addr).unwrap_or(None); // UDP is best-effort, right?
                             },
