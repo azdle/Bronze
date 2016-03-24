@@ -42,43 +42,15 @@ Then you'll need to create a run the server, a simple example of this would be:
 extern crate bronze;
 
 use bronze::endpoint::Endpoint;
-use bronze::nullserver::NullServer;
+use bronze::nullhandler::NullHandler;
 
 fn main() {
     let local_addr = "127.0.0.1:5683".parse().unwrap();
     println!("CoAP Server Listening on {}", local_addr);
-    Endpoint::new(local_addr).run(NullServer);
+    Endpoint::new(local_addr).run(NullHandler);
 }
 ```
 
-This example uses the included `NullServer` which is an example of how to write
-a request handler. NullServer simply replies to all valid CoAP packets with RST
-messages. It's implemented with:
-
-```rust
-use message::*;
-use endpoint::RequestHandler;
-
-use std::net::SocketAddr;
-
-pub struct NullServer;
-
-impl RequestHandler for NullServer {
-    fn handle_request(&self, _addr: &SocketAddr, request: &Message) -> Option<Vec<u8>> {
-        println!("{:?}", request);
-        // todo: would it be better to use an ack w/ error code?
-        let reply = Message{
-            version: 1,
-            mtype: Mtype::Reset,
-            code: Code::Empty,
-            mid: request.mid,
-            token: request.token.clone(),
-            options: vec![],
-            payload: vec![]
-        };
-
-        Some(reply.to_bytes().unwrap())
-    }
-}
-
-```
+This example uses the included `NullHandler` which is an example of how to write
+a message handler. NullHandler simply replies to any valid CoAP packets that
+would expect a response with a RST message.
