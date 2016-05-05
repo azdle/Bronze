@@ -13,18 +13,20 @@ pub trait MsgHandler {
 
 pub struct Endpoint {
     local_addr: SocketAddr,
+    event_loop: EventLoop<SocketHandler<MsgHandler>>,
+    server: UdpSocket
 }
 
 impl Endpoint {
     pub fn new(local_addr: SocketAddr) -> Endpoint {
-        Endpoint{local_addr: local_addr}
+        let server = UdpSocket::bound(local_addr).unwrap();
+        let mut event_loop = EventLoop::new().unwrap();
+        event_loop.register(&server, SERVER, EventSet::readable(), PollOpt::edge()).unwrap();
+
+        Endpoint{local_addr: local_addr, event_loop: event_loop}
     }
 
     pub fn run<H: MsgHandler>(self, handler: H) {
-        let server = UdpSocket::bound(&self.local_addr).unwrap();
-
-        let mut event_loop = EventLoop::new().unwrap();
-        event_loop.register(&server, SERVER, EventSet::readable(), PollOpt::edge()).unwrap();
-        event_loop.run(&mut SocketHandler::new(server, handler)).unwrap();
+        self.event_loop.run(&mut SocketHandler::new(self.server, handler)).unwrap();
     }
 }
